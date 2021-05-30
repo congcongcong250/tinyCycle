@@ -1,3 +1,9 @@
+// h
+const h = (tagName, children) => ({ tagName, children });
+const span = (children) => h('span', children);
+const h1 = (children) => h('h1', children);
+const h2 = (children) => h('h2', children);
+
 // Logic
 function main(sources) {
     const click$ = sources.DOM.selectEvents('span', 'click');
@@ -8,15 +14,11 @@ function main(sources) {
                     .fold(prev => prev + 1, 0)
             )
             .flatten()
-            .map(i => ({
-                tagName: 'h2',
-                children: [
-                    {
-                        tagName: 'span',
-                        children: [`Seconds elapsed: ${i}`]
-                    }
-                ]
-            })),
+            .map(i =>
+                h2([
+                    span([`Seconds elapsed: ${i}`])
+                ])
+            ),
         log: xs.periodic(2000)
     }
 }

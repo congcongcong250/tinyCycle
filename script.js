@@ -1,6 +1,6 @@
 // Logic
 function main(sources) {
-    const click$ = sources.DOM;
+    const click$ = sources.DOM.selectEvents('span', 'click');
     return {
         DOM: click$.startWith(null)
             .map(() =>
@@ -49,7 +49,13 @@ function domDriver(obj$) {
         }
     })
 
-    const domSource = fromEvent(document, 'click');
+    const domSource = {
+        selectEvents:
+            (tagName, ev) => {
+                return fromEvent(document, ev)
+                    .filter(ev => ev.target.tagName.toUpperCase() === tagName.toUpperCase());
+            }
+    };
     return domSource;
 }
 

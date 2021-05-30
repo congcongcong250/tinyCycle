@@ -37,7 +37,13 @@ function logDriver(msg$) {
     });
 }
 
+Cycle.run(main, {
+    DOM: domDriver,
+    log: logDriver
+});
+
 // Bootstrap
+/*
 function run(mainFn, drivers) {
     // cycleJS
     // b = f(a)
@@ -75,3 +81,4 @@ run(main, {
     DOM: domDriver,
     log: logDriver
 })
+*/

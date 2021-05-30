@@ -1,13 +1,21 @@
 // Logic
-function main() {
+function main(sources) {
+    const click$ = sources.DOM;
     return {
-        DOM: xs.periodic(1000)
-            .fold(prev => prev + 1, 0)
+        DOM: click$.startWith(null)
+            .map(() =>
+                xs.periodic(1000)
+                    .fold(prev => prev + 1, 0)
+            )
+            .flatten()
             .map(i => `Seconds elapsed: ${i}`),
         log: xs.periodic(2000)
             .fold(prev => prev + 1, 0)
     }
 }
+
+// source = input (read) effect
+// sink = output (write) effect
 
 // Effects
 function domDriver(text$) {
@@ -17,6 +25,9 @@ function domDriver(text$) {
             el.textContent = str;
         }
     })
+
+    const domSource = fromEvent(document, 'click');
+    return domSource;
 }
 
 function logDriver(msg$) {
@@ -27,12 +38,26 @@ function logDriver(msg$) {
     });
 }
 
+// Bootstrap
 function run(mainFn, drivers) {
-    // A one-way flow sink
-    const sink = mainFn();
-    Object.keys(sink).forEach(k => {
-        drivers[k](sink[k]);
-    })
+    // cycleJS
+    // b = f(a)
+    // a = g(b)
+    // const sink = mainFn(domSource);
+    // const domSource = domDriver(sink.DOM);
+
+    // fakeA = ...
+    // b = f(fakeA)
+    // a = g(b)
+    // fakeA.behaveLike(a);
+    const fakeDOMSink = xs.create();
+    const domSource = domDriver(fakeDOMSink);
+    const sink = mainFn({ DOM: domSource });
+    fakeDOMSink.imitate(sink.DOM);
+
+    // Object.keys(sink).forEach(k => {
+    //     drivers[k](sink[k]);
+    // })
 }
 
 run(main, {

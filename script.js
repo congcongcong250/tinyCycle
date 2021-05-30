@@ -1,5 +1,5 @@
 // Logic
-function main(){
+function main() {
     return {
         DOM: xs.periodic(1000)
             .fold(prev => prev + 1, 0)
@@ -10,7 +10,7 @@ function main(){
 }
 
 // Effects
-function domDriver(text$){   
+function domDriver(text$) {
     text$.subscribe({
         next: str => {
             const el = document.querySelector('#app');
@@ -19,7 +19,7 @@ function domDriver(text$){
     })
 }
 
-function logDriver(msg$){
+function logDriver(msg$) {
     msg$.subscribe({
         next: msg => {
             console.log(msg);
@@ -27,7 +27,15 @@ function logDriver(msg$){
     });
 }
 
-// A one-way flow sink
-const sink = main();
-domDriver(sink.DOM);
-logDriver(sink.log);
+function run(mainFn, drivers) {
+    // A one-way flow sink
+    const sink = mainFn();
+    Object.keys(sink).forEach(k => {
+        drivers[k](sink[k]);
+    })
+}
+
+run(main, {
+    DOM: domDriver,
+    log: logDriver
+})

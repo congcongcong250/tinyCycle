@@ -8,7 +8,15 @@ function main(sources) {
                     .fold(prev => prev + 1, 0)
             )
             .flatten()
-            .map(i => `Seconds elapsed: ${i}`),
+            .map(i => ({
+                tagName: 'h2',
+                children: [
+                    {
+                        tagName: 'span',
+                        children: [`Seconds elapsed: ${i}`]
+                    }
+                ]
+            })),
         log: xs.periodic(2000)
     }
 }
@@ -17,11 +25,27 @@ function main(sources) {
 // sink = output (write) effect
 
 // Effects
-function domDriver(text$) {
-    text$.subscribe({
-        next: str => {
+function domDriver(obj$) {
+
+    function createElement(obj) {
+        const el = document.createElement(obj.tagName);
+        obj.children.forEach(child => {
+            let childEl;
+            if (typeof child === 'string') {
+                childEl = document.createTextNode(child);;
+            } else if (child.tagName) {
+                childEl = createElement(child);
+            }
+            childEl && el.appendChild(childEl);
+        })
+        return el;
+    }
+
+    obj$.subscribe({
+        next: obj => {
             const el = document.querySelector('#app');
-            el.textContent = str;
+            el.textContent = '';
+            el.appendChild(createElement(obj));
         }
     })
 

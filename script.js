@@ -27,38 +27,39 @@ function main(sources) {
 // sink = output (write) effect
 
 // Effects
-function domDriver(obj$) {
-
-    function createElement(obj) {
-        const el = document.createElement(obj.tagName);
-        obj.children.forEach(child => {
-            let childEl;
-            if (typeof child === 'string') {
-                childEl = document.createTextNode(child);;
-            } else if (child.tagName) {
-                childEl = createElement(child);
-            }
-            childEl && el.appendChild(childEl);
-        })
-        return el;
-    }
-
-    obj$.subscribe({
-        next: obj => {
-            const el = document.querySelector('#app');
-            el.textContent = '';
-            el.appendChild(createElement(obj));
+function makeDOMDriver(rootId) {
+    return function domDriver(obj$) {
+        function createElement(obj) {
+            const el = document.createElement(obj.tagName);
+            obj.children.forEach(child => {
+                let childEl;
+                if (typeof child === 'string') {
+                    childEl = document.createTextNode(child);;
+                } else if (child.tagName) {
+                    childEl = createElement(child);
+                }
+                childEl && el.appendChild(childEl);
+            })
+            return el;
         }
-    })
 
-    const domSource = {
-        selectEvents:
-            (tagName, ev) => {
-                return fromEvent(document, ev)
-                    .filter(ev => ev.target.tagName.toUpperCase() === tagName.toUpperCase());
+        obj$.subscribe({
+            next: obj => {
+                const el = document.querySelector(rootId);
+                el.textContent = '';
+                el.appendChild(createElement(obj));
             }
-    };
-    return domSource;
+        })
+
+        const domSource = {
+            selectEvents:
+                (tagName, ev) => {
+                    return fromEvent(document, ev)
+                        .filter(ev => ev.target.tagName.toUpperCase() === tagName.toUpperCase());
+                }
+        };
+        return domSource;
+    }
 }
 
 function logDriver(msg$) {
@@ -70,7 +71,7 @@ function logDriver(msg$) {
 }
 
 Cycle.run(main, {
-    DOM: domDriver,
+    DOM: makeDOMDriver('#app'),
     log: logDriver
 });
 
